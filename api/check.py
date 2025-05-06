@@ -1,47 +1,34 @@
 import requests
 import os
 import json
+from flask import Flask, request, jsonify
 
-def handler(request):
-    try:
-        if request.method != "POST":
-            return {
-                "statusCode": 405,
-                "body": "Only POST allowed"
-            }
+app = Flask(__name__)
 
-        body = request.get_json()
-        url = body.get("url")
-        api_key = os.environ.get("GOOGLE_SAFE_BROWSING_KEY")
+@app.route('/api/check', methods=['POST'])
+def check_url():
+    data = request.json
+    url = data.get("url")
+    api_key = os.environ.get("GOOGLE_SAFE_BROWSING_KEY")
 
-        endpoint = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={api_key}"
+    endpoint = f"https://safebrowsing.googleapis.com/v4/threatMatches:find?key={api_key}"
 
-        payload = {
-            "client": {"clientId": "kamil-checker", "clientVersion": "1.0"},
-            "threatInfo": {
-                "threatTypes": ["MALWARE", "SOCIAL_ENGINEERING"],
-                "platformTypes": ["ANY_PLATFORM"],
-                "threatEntryTypes": ["URL"],
-                "threatEntries": [{"url": url}]
-            }
+    payload = {
+        "client": {"clientId": "kamil-checker", "clientVersion": "1.0"},
+        "threatInfo": {
+            "threatTypes": ["MALWARE", "SOCIAL_ENGINEERING"],
+            "platformTypes": ["ANY_PLATFORM"],
+            "threatEntryTypes": ["URL"],
+            "threatEntries": [{"url": url}]
         }
+    }
 
-        res = requests.post(endpoint, json=payload)
-        data = res.json()
+    response = requests.post(endpoint, json=payload)
+    result = response.json()
 
-        if "matches" in data:
-            return {
-                "statusCode": 200,
-                "body": "⚠️ Unsafe URL detected!"
-            }
-        else:
-            return {
-                "statusCode": 200,
-                "body": "✅ URL looks safe!"
-            }
+    if "matches" in result:
+        return jsonify({"status": "danger", "message": "⚠️ Unsafe URL detected!"})
+    return jsonify({"status": "safe", "message": "✅ URL is safe."})
 
-    except Exception as e:
-        return {
-            "statusCode": 500,
-            "body": f"Error: {str(e)}"
-        }
+if __name__ == "__main__":
+    app.run()
