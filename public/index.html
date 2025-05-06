@@ -2,30 +2,125 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Phishing Link Checker</title>
+  <title>Safe Link Checker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    body { font-family: Arial; background: #f4f4f4; text-align: center; padding: 50px; }
-    input, button { padding: 10px; width: 300px; margin-top: 20px; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: #eef1f5;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+      text-align: center;
+      width: 100%;
+      max-width: 400px;
+    }
+    h2 {
+      color: #2c3e50;
+    }
+    input {
+      padding: 10px;
+      width: 100%;
+      margin-top: 15px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 16px;
+    }
+    button {
+      margin-top: 20px;
+      width: 100%;
+      padding: 12px;
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #2980b9;
+    }
+    #result {
+      margin-top: 20px;
+      font-size: 16px;
+      font-weight: bold;
+    }
+    .safe { color: green; }
+    .danger { color: red; }
+    .error { color: orange; }
+    @media (max-width: 500px) {
+      .container {
+        margin: 10px;
+        padding: 20px;
+      }
+    }
   </style>
 </head>
 <body>
-  <h2>Google Safe Browsing Link Checker</h2>
-  <input type="text" id="url" placeholder="Enter suspicious URL">
-  <br>
-  <button onclick="check()">Check URL</button>
-  <p id="result"></p>
+  <div class="container">
+    <h2>Google Safe Link Checker</h2>
+    <input type="text" id="url" placeholder="Enter URL (e.g. https://example.com)">
+    <button onclick="check()">Check URL</button>
+    <p id="result"></p>
+  </div>
 
   <script>
     async function check() {
-      const url = document.getElementById('url').value;
-      document.getElementById('result').innerText = 'Checking...';
-      const res = await fetch('https://safe-link-check.onrender.com/api/check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
-      });
-      const data = await res.json();
-      document.getElementById('result').innerText = data.message;
+      const input = document.getElementById('url');
+      const result = document.getElementById('result');
+      const url = input.value.trim();
+
+      // Reset
+      result.textContent = '';
+      result.className = '';
+
+      if (!url) {
+        result.textContent = "Please enter a URL.";
+        result.className = 'error';
+        return;
+      }
+
+      if (!/^https?:\/\//i.test(url)) {
+        result.textContent = "URL must start with http:// or https://";
+        result.className = 'error';
+        return;
+      }
+
+      result.textContent = "Checking...";
+      result.className = '';
+
+      try {
+        const res = await fetch('https://safe-link-check.onrender.com/api/check', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+
+        const data = await res.json();
+        result.textContent = data.message;
+
+        if (data.status === "safe") {
+          result.className = 'safe';
+        } else if (data.status === "danger") {
+          result.className = 'danger';
+        } else {
+          result.className = 'error';
+        }
+
+      } catch (err) {
+        result.textContent = "Server error. Please try again.";
+        result.className = 'error';
+        console.error(err);
+      }
     }
   </script>
 </body>
