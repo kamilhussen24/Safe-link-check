@@ -1,33 +1,32 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Phishing Link Checker</title>
-  <style>
-    body { font-family: Arial; background: #f2f2f2; text-align: center; padding: 50px; }
-    input, button { padding: 12px; margin-top: 15px; width: 80%; max-width: 400px; }
-  </style>
+    <meta charset="UTF-8">
+    <title>Phishing Link Checker</title>
+    <style>
+        body { font-family: Arial; background: #f4f4f4; text-align: center; padding: 50px; }
+        input, button { padding: 10px; width: 300px; margin-top: 20px; }
+    </style>
 </head>
 <body>
-  <h2>Phishing Link Checker (Google Safe Browsing)</h2>
-  <input type="text" id="url" placeholder="Paste suspicious URL">
-  <br>
-  <button onclick="checkURL()">Check URL</button>
-  <p id="result"></p>
+    <h2>Google Safe Browsing Link Checker</h2>
+    <input type="text" id="url" placeholder="Enter suspicious URL">
+    <br>
+    <button onclick="check()">Check URL</button>
+    <p id="result"></p>
 
-  <script>
-    async function checkURL() {
-      const url = document.getElementById('url').value;
-      const result = document.getElementById('result');
-      result.innerText = "Checking...";
-      const res = await fetch('/api/check', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ url })
-      });
-      const text = await res.text();
-      result.innerText = text;
-    }
-  </script>
+    <script>
+        async function check() {
+            const url = document.getElementById('url').value;
+            document.getElementById('result').innerText = 'Checking...';
+            const res = await fetch('/api/check', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url })
+            });
+            const data = await res.json();
+            document.getElementById('result').innerText = data.message;
+        }
+    </script>
 </body>
 </html>
